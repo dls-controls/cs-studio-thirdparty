@@ -9,6 +9,6 @@
   </parent>
   <groupId>org.csstudio</groupId>
   <artifactId>org.csstudio.platform.libs.jms</artifactId>
-  <version>5.4.2-SNAPSHOT</version>
+  <version>5.4.3-SNAPSHOT</version>
   <packaging>eclipse-plugin</packaging>
 </project>
