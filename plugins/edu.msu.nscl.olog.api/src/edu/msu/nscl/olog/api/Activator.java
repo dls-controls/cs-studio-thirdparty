@@ -1,4 +1,3 @@
-
 package edu.msu.nscl.olog.api;
 
 import java.util.logging.Level;
