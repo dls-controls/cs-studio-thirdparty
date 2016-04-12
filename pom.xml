@@ -22,10 +22,12 @@
     <!-- VERSIONS -->
     <tycho.version>0.23.1</tycho.version>
     <tycho-extras.version>0.23.1</tycho-extras.version>
-    <cs-studio-central.url>http://download.controlsystemstudio.org/thirdparty/4.3</cs-studio-central.url>
+    <cs-studio.version>4.3</cs-studio.version>
+    <cs-studio-central.url>http://download.controlsystemstudio.org/thirdparty/${cs-studio.version}</cs-studio-central.url>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <jgit.dirtyWorkingTree>error</jgit.dirtyWorkingTree>
     <baselineMode>fail</baselineMode>
+    <upload.root>s3://download.controlsystemstudio.org</upload.root>
   </properties>
 
   <!-- PLUGIN REPOSITORIES -->
@@ -72,18 +74,18 @@
         </repository>
       </repositories>
     </profile>
-    <!-- If a local repository is specified then enable that repository -->
+    <!-- If composite repo is defined, use it. -->
     <profile>
-      <id>csstudio-local-repo-enable</id>
+      <id>csstudio-composite-repo-enable</id>
       <activation>
-        <file>
-          <exists>${csstudio.local.repo}/artifacts.jar</exists>
-        </file>
+        <property>
+          <name>csstudio.composite.repo</name>
+        </property>
       </activation>
       <repositories>
         <repository>
-          <id>csstudio-local-repo</id>
-          <url>file:${csstudio.local.repo}</url>
+          <id>csstudio-composite-repo</id>
+          <url>file:${csstudio.composite.repo}</url>
           <layout>p2</layout>
         </repository>
       </repositories>
@@ -110,6 +112,13 @@
 
 
   <build>
+    <extensions>
+      <extension>
+        <groupId>org.kuali.maven.wagons</groupId>
+        <artifactId>maven-s3-wagon</artifactId>
+        <version>1.2.1</version>
+      </extension>
+    </extensions>
     <!-- PLUGIN MANAGEMENT -->
     <pluginManagement>
       <plugins>
