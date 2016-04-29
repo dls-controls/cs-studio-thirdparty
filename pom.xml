@@ -35,7 +35,7 @@
     <cs-studio-central.url>http://download.controlsystemstudio.org/thirdparty/4.2</cs-studio-central.url>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <jgit.dirtyWorkingTree>error</jgit.dirtyWorkingTree>
-    <baselineMode>fail</baselineMode>
+    <baselineMode>warn</baselineMode>
   </properties>
 
   <!--
