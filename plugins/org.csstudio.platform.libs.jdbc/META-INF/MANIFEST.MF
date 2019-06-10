@@ -10,9 +10,9 @@ Bundle-ClassPath: .,
  libs/ojdbc8-12.2.0.1.jar,
  libs/postgresql-42.1.4.jar,
  libs/mysql-connector-java-8.0.12.jar
-Export-Package: com.mysql.jdbc,
- com.mysql.jdbc.exceptions,
- com.mysql.jdbc.util,
+Export-Package: com.mysql.cj.jdbc,
+ com.mysql.cj.jdbc.exceptions,
+ com.mysql.cj.jdbc.util,
  oracle.core.lmx,
  oracle.core.lvf,
  oracle.jdbc,
@@ -37,8 +37,7 @@ Export-Package: com.mysql.jdbc,
  oracle.sql,
  oracle.sql.converter,
  org.csstudio.platform.libs.jdbc,
- org.gjt.mm.mysql,
  org.postgresql,
  org.postgresql.copy,
  org.postgresql.core
-Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-RequiredExecutionEnvironment: JavaSE-11

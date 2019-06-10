@@ -227,14 +227,20 @@ public class ShiftClientImpl implements ShiftClient {
     }
     private ShiftClientImpl(final URI shiftURI, ClientConfig config, final boolean withHTTPBasicAuthFilter,
                             final String username, final String password, final ExecutorService executor) {
-        this.executor = executor;
-        config.getClasses().add(MultiPartWriter.class);
-        final Client client = Client.create(config);
-        if (withHTTPBasicAuthFilter) {
-            client.addFilter(new HTTPBasicAuthFilter(username, password));
-        }
-        client.setFollowRedirects(true);
-        service = client.resource(UriBuilder.fromUri(shiftURI).build());
+            this.executor = executor;
+            config.getClasses().add(MultiPartWriter.class);
+            ClassLoader old = Thread.currentThread().getContextClassLoader();
+            Thread.currentThread().setContextClassLoader(Client.class.getClassLoader());
+            try {
+                final Client client = Client.create(config);
+                if (withHTTPBasicAuthFilter) {
+                    client.addFilter(new HTTPBasicAuthFilter(username, password));
+                }
+                client.setFollowRedirects(true);
+                service = client.resource(UriBuilder.fromUri(shiftURI).build());
+            } finally {
+                Thread.currentThread().setContextClassLoader(old);
+            }
     }
 
     @Override
@@ -404,6 +410,8 @@ public class ShiftClientImpl implements ShiftClient {
 	
 
     private <T> T wrappedSubmit(final Callable<T> callable) {
+        final ClassLoader orig = Thread.currentThread().getContextClassLoader();
+        Thread.currentThread().setContextClassLoader(ShiftClientImpl.class.getClassLoader());
         try {
             return this.executor.submit(callable).get();
         } catch (InterruptedException e) {
@@ -415,6 +423,8 @@ public class ShiftClientImpl implements ShiftClient {
                         (UniformInterfaceException) e.getCause());
             }
             throw new RuntimeException(e);
+        } finally {
+            Thread.currentThread().setContextClassLoader(orig);
         }
     }
 

@@ -252,16 +252,22 @@ public class OlogClientImpl implements OlogClient {
 	private OlogClientImpl(URI ologURI, ClientConfig config,
 			boolean withHTTPBasicAuthFilter, String username, String password,
 			ExecutorService executor) {
-		this.executor = executor;
-		config.getClasses().add(MultiPartWriter.class);
-		Client client = Client.create(config);
-		if (withHTTPBasicAuthFilter) {
-			client.addFilter(new HTTPBasicAuthFilter(username, password));
-		}
-		client.addFilter(new RawLoggingFilter(Logger
-				.getLogger(OlogClientImpl.class.getName())));
-		client.setFollowRedirects(true);
-		service = client.resource(UriBuilder.fromUri(ologURI).build());
+                this.executor = executor;
+                config.getClasses().add(MultiPartWriter.class);
+                ClassLoader old = Thread.currentThread().getContextClassLoader();
+                Thread.currentThread().setContextClassLoader(Client.class.getClassLoader());
+                try {
+                    Client client = Client.create(config);
+                    if (withHTTPBasicAuthFilter) {
+                        client.addFilter(new HTTPBasicAuthFilter(username, password));
+                    }
+                    client.addFilter(new RawLoggingFilter(Logger.getLogger(OlogClientImpl.class.getName())));
+                    client.setFollowRedirects(true);
+                    service = client.resource(UriBuilder.fromUri(ologURI).build());
+                } finally {
+                    Thread.currentThread().setContextClassLoader(old);
+                }
+
 	}
 
 	@Override
@@ -1077,33 +1083,41 @@ public class OlogClientImpl implements OlogClient {
 		});
 	}
 
-	private <T> T wrappedSubmit(Callable<T> callable) {
-		try {
-			return this.executor.submit(callable).get();
-		} catch (InterruptedException e) {
-			throw new RuntimeException(e);
-		} catch (ExecutionException e) {
-			if (e.getCause() != null
-					&& e.getCause() instanceof UniformInterfaceException) {
-				throw new OlogException(
-						(UniformInterfaceException) e.getCause());
-			}
-			throw new RuntimeException(e);
-		}
-	}
+        private <T> T wrappedSubmit(Callable<T> callable) {
+            final ClassLoader orig = Thread.currentThread().getContextClassLoader();
+            Thread.currentThread().setContextClassLoader(OlogClientImpl.class.getClassLoader());
+            try {
+                    return this.executor.submit(callable).get();
+            } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+            } catch (ExecutionException e) {
+                    if (e.getCause() != null
+                                    && e.getCause() instanceof UniformInterfaceException) {
+                            throw new OlogException(
+                                            (UniformInterfaceException) e.getCause());
+                    }
+                    throw new RuntimeException(e);
+            } finally {
+                Thread.currentThread().setContextClassLoader(orig);
+            }
+         }
 
-	private void wrappedSubmit(Runnable runnable) {
-		try {
-			this.executor.submit(runnable).get(60, TimeUnit.SECONDS);
-		} catch (ExecutionException e) {
-			if (e.getCause() != null
-					&& e.getCause() instanceof UniformInterfaceException) {
-				throw new OlogException(
-						(UniformInterfaceException) e.getCause());
-			}
-			throw new RuntimeException(e);
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-	}
+         private void wrappedSubmit(Runnable runnable) {
+            final ClassLoader orig = Thread.currentThread().getContextClassLoader();
+            Thread.currentThread().setContextClassLoader(OlogClientImpl.class.getClassLoader());
+            try {
+                    this.executor.submit(runnable).get(60, TimeUnit.SECONDS);
+            } catch (ExecutionException e) {
+                    if (e.getCause() != null
+                                    && e.getCause() instanceof UniformInterfaceException) {
+                            throw new OlogException(
+                                            (UniformInterfaceException) e.getCause());
+                    }
+                    throw new RuntimeException(e);
+            } catch (Exception e) {
+                    throw new RuntimeException(e);
+            } finally {
+                Thread.currentThread().setContextClassLoader(orig);
+            }
+         }
 }
